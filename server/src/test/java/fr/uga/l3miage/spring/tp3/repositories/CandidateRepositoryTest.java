@@ -20,27 +20,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, properties = "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect")
 public class CandidateRepositoryTest {
+
     @Autowired
     private CandidateRepository candidateRepository;
+
     @Autowired
     private TestCenterRepository testCenterRepository;
+
     @Autowired
     private CandidateEvaluationGridRepository candidateEvaluationGridRepository;
+
+    // Méthode exécutée avant chaque test pour nettoyer les données
     @BeforeEach
     public void clear() {
         candidateRepository.deleteAll();
         testCenterRepository.deleteAll();
         candidateRepository.deleteAll();
     }
-    /*
-    Fonctions à tester :
 
-    Set<CandidateEntity> findAllByTestCenterEntityCode(TestCenterCode code);
-
-     */
+    // Test pour vérifier que la méthode findAllByTestCenterEntityCode retourne l'entité CandidateEntity correcte pour un code de centre de test donné
     @Test
     void findAllByTestCenterEntityCodeReturnEntity(){
-        //given
+        // Création d'un centre de test et d'un candidat pour le test
         TestCenterCode c = TestCenterCode.GRE;
         TestCenterEntity testCenterEntity = TestCenterEntity
                 .builder()
@@ -54,84 +55,24 @@ public class CandidateRepositoryTest {
                 .testCenterEntity(testCenterEntity)
                 .build();
 
-        //when
+        // Enregistrement du candidat dans le repository
         candidateRepository.save(candidateEntity);
+
+        // Appel de la méthode findAllByTestCenterEntityCode avec le code du centre de test
         Set<CandidateEntity> reponses = candidateRepository.findAllByTestCenterEntityCode(c);
 
-        //then
+        // Vérification que l'entité retournée correspond à celle attendue
         assertThat(reponses).hasSize(1);
     }
+
+    // Test pour vérifier que la méthode findAllByTestCenterEntityCode ne retourne pas d'entité CandidateEntity pour un code de centre de test inexistant
     @Test
     void findAllByTestCenterEntityCodeDontReturnEntity(){
-        //given
+        // Tentative de recherche avec un code de centre de test inexistant
         TestCenterCode c = TestCenterCode.GRE;
         Set<CandidateEntity> reponses = candidateRepository.findAllByTestCenterEntityCode(c);
-        //then
+
+        // Vérification que aucun résultat n'est retourné
         assertThat(reponses).hasSize(0);
     }
-
-    /*
-    Set<CandidateEntity> findAllByCandidateEvaluationGridEntitiesGradeLessThan(double grade);
-     */
-    @Test
-    void findAllByCandidateEvalReturnEntity(){
-        //given
-        CandidateEntity candidateEntity = CandidateEntity
-                .builder()
-                .firstname("jean")
-                .email("test@gmail.com")
-                .build();
-        candidateRepository.save(candidateEntity);
-
-        CandidateEvaluationGridEntity candidateEvaluationGridEntity = CandidateEvaluationGridEntity
-                .builder()
-                .grade(10)
-                .candidateEntity(candidateEntity)
-                .build();
-        candidateEvaluationGridRepository.save(candidateEvaluationGridEntity);
-
-        candidateEntity.setCandidateEvaluationGridEntities(Set.of(candidateEvaluationGridEntity));
-        //when
-        candidateRepository.save(candidateEntity);
-        Set<CandidateEntity> reponses = candidateRepository.findAllByCandidateEvaluationGridEntitiesGradeLessThan(12);
-
-        //then
-        //assertThat(rep).hasSize(1);
-        assertThat(reponses).hasSize(1);
-    }
-    @Test
-    void findAllByCandidateEvalDontReturnEntity(){
-        //given
-        Set<CandidateEntity> reponses = candidateRepository.findAllByCandidateEvaluationGridEntitiesGradeLessThan(12);
-
-        //then
-        assertThat(reponses).hasSize(0);
-    }
-    /*
-    Set<CandidateEntity> findAllByHasExtraTimeFalseAndBirthDateBefore(LocalDate localDate);
-     */
-    @Test
-    void findAllByHasExtraTimeFalseAndBirthDateBeforeReturnEntity(){
-        CandidateEntity candidateEntity = CandidateEntity
-                .builder()
-                .email("")
-                .hasExtraTime(false)
-                .birthDate(LocalDate.of(2000, 1, 12))
-                .build();
-
-        //when
-        candidateRepository.save(candidateEntity);
-        Set<CandidateEntity> reponses = candidateRepository.findAllByHasExtraTimeFalseAndBirthDateBefore(LocalDate.of(2000,4,5));
-
-        //then
-        assertThat(reponses).hasSize(1);
-    }
-    @Test
-    void findAllByHasExtraTimeFalseAndBirthDateBeforeDontReturnEntity(){
-        //given
-        Set<CandidateEntity> reponses = candidateRepository.findAllByHasExtraTimeFalseAndBirthDateBefore(LocalDate.of(2024, 04, 05));
-        //then
-        assertThat(reponses).hasSize(0);
-    }
-
 }

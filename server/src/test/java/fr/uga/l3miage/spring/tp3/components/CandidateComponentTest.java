@@ -22,29 +22,40 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class CandidateComponentTest {
+
     @Autowired
     private CandidateComponent candidateComponent;
+
     @MockBean
     private CandidateRepository candidateRepository;
-    /*
-        public CandidateEntity getCandidatById(Long id)
-     */
+
+    // Test pour vérifier le comportement lorsque le candidat n'est pas trouvé dans le repository.
+    // Il vérifie que l'exception CandidateNotFoundException est lancée.
     @Test
     void getCandidateByIdThrowException(){
-        //given
+
+        // Simulation du comportement du repository : retourne une Optional vide
         when(candidateRepository.findById(anyLong())).thenReturn(Optional.empty());
-        //when-then
+
+        // Appel de la méthode à tester et vérification qu'une exception est lancée
         assertThrows(CandidateNotFoundException.class, ()->candidateComponent.getCandidatById(1L));
     }
+
+    // Test pour vérifier le comportement lorsque le candidat est trouvé dans le repository.
+    // Il vérifie qu'aucune exception n'est lancée.
     @Test
     void getCandidateByIdDontThrow(){
-        //given
+
+        // Création d'une instance de candidat
         CandidateEntity candidateEntity = CandidateEntity
                 .builder()
                 .email("")
                 .build();
+
+        // Simulation du comportement du repository : retourne une Optional contenant le candidat créé
         when(candidateRepository.findById(anyLong())).thenReturn(Optional.of(candidateEntity));
-        //when-then
+
+        // Appel de la méthode à tester et vérification qu'aucune exception n'est lancée
         assertDoesNotThrow(()->candidateComponent.getCandidatById(1L));
     }
 }
