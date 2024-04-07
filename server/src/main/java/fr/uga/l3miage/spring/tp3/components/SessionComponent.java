@@ -7,6 +7,8 @@ import fr.uga.l3miage.spring.tp3.repositories.EcosSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
+
 @Component
 @RequiredArgsConstructor
 public class SessionComponent {
@@ -19,5 +21,9 @@ public class SessionComponent {
         ecosSessionProgrammationStepRepository.saveAll(entity.getEcosSessionProgrammationEntity().getEcosSessionProgrammationStepEntities());
         ecosSessionProgrammationRepository.save(entity.getEcosSessionProgrammationEntity());
         return ecosSessionRepository.save(entity);
+    }
+
+    public EcosSessionEntity getSessionById(Long idSession) {
+        return ecosSessionRepository.findById(idSession).orElseThrow();
     }
 }

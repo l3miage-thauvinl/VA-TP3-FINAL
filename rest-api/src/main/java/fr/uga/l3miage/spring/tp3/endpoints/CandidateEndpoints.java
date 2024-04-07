@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 public interface CandidateEndpoints {
 
 
-    @Operation(description = "Calculer la moyenne d'un étudiant en fonction de sont ...")
-    @ApiResponse(responseCode = "200", description = "La note à pu être calculer")
+    @Operation(description = "Calculer la moyenne d'un étudiant en fonction de son ...")
+    @ApiResponse(responseCode = "200", description = "La note à pu être calculé")
     @ApiResponse(responseCode = "404", description = "Le candidat n'a pas été trouvé" , content = @Content(schema = @Schema(implementation = CandidatNotFoundResponse.class),mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{candidateId}/average")
