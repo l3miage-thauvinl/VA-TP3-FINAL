@@ -54,44 +54,49 @@ public class SessionService {
             throw new CreationSessionRestException(e.getMessage());
         }
     }
-/*
- Faire passer l'état d'une session de l'état `EVAL_STARTED` à `EVAL_ENDED`. (4h)
-        - Vérification métier :
-            - Vérifier que la dernière étape est déjà passée.
-            - L'état précédent était bien `EVAL_STARTED`.
-        - Code attendu :
-            - 200 OK
-            - 409 CONFLIT
-        - Réponse :
-            - Les copies des candidats
-            - Si le cas est 409, un message comportant :
-                - URI
-                - Message d'erreur
-                - État actuel de la session.
- */
+
+    /**
+     * Cette méthode change l'état d'une session en fonction de certaines conditions et renvoie un ensemble de réponses d'examen.
+     *
+     * @param idSession L'identifiant de la session à modifier
+     * @return Un ensemble de réponses d'examen après avoir changé l'état de la session
+     * @throws SessionChangeStateRestException Si une erreur survient lors du changement d'état de la session
+     */
     public Set<ExamResponse> changeState(Long idSession) {
+        // Récupérer l'entité de la session à partir du composant de session
         EcosSessionEntity ecosSessionEntity = sessionComponent.getSessionById(idSession);
-        try{
-            if(sessionTermine(ecosSessionEntity)&&ecosSessionEntity.getStatus()==SessionStatus.EVAL_STARTED)
-                ecosSessionEntity.setStatus(SessionStatus.EVAL_ENDED);
 
-            return ecosSessionEntity.getExamEntities()
-                    .stream()
-                    .map(examMapper::toResponse)
-                    .collect(Collectors.toSet());
+        // Vérifier si la session est terminée et si son état est EVAL_STARTED
+        if (sessionTermine(ecosSessionEntity) && ecosSessionEntity.getStatus() == SessionStatus.EVAL_STARTED)
+            // Changer l'état de la session en EVAL_ENDED
+            ecosSessionEntity.setStatus(SessionStatus.EVAL_ENDED);
+        else throw new SessionChangeStateRestException("On ne peut pas changer le status de cette session", ecosSessionEntity.getStatus());
 
-        }catch (Exception e){
-            throw new SessionChangeStateRestException(e.getMessage(), ecosSessionEntity.getStatus());
-        }
-
+        // Mapper les entités d'examen en réponses d'examen et les collecter dans un ensemble
+        return ecosSessionEntity.getExamEntities()
+                .stream()
+                .map(examMapper::toResponse)
+                .collect(Collectors.toSet());
 
     }
-    private boolean sessionTermine(EcosSessionEntity ecosSessionEntity){
+
+    /**
+     * Cette méthode vérifie si la session est terminée en fonction de la date et l'heure actuelles.
+     *
+     * @param ecosSessionEntity L'entité de la session à vérifier
+     * @return true si la session est terminée, sinon false
+     */
+    private boolean sessionTermine(EcosSessionEntity ecosSessionEntity) {
+        // Initialiser un tableau avec un seul élément, qui contient la valeur true par défaut
         final boolean[] t = {true};
-        ecosSessionEntity.getEcosSessionProgrammationEntity().getEcosSessionProgrammationStepEntities().forEach(val-> {
+        // Parcourir les étapes de programmation de la session
+        ecosSessionEntity.getEcosSessionProgrammationEntity().getEcosSessionProgrammationStepEntities().forEach(val -> {
+            // Si la date et l'heure de l'étape sont après la date et l'heure actuelles, mettre la valeur du tableau à false
             if (val.getDateTime().isAfter(LocalDateTime.now()))
                 t[0] = false;
         });
+        // Renvoyer la valeur du tableau, qui indique si la session est terminée ou non
         return t[0];
     }
+
 }

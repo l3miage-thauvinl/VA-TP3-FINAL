@@ -3,7 +3,9 @@ package fr.uga.l3miage.spring.tp3.services;
 import fr.uga.l3miage.spring.tp3.components.ExamComponent;
 import fr.uga.l3miage.spring.tp3.components.SessionComponent;
 import fr.uga.l3miage.spring.tp3.exceptions.rest.CreationSessionRestException;
+import fr.uga.l3miage.spring.tp3.exceptions.rest.SessionChangeStateRestException;
 import fr.uga.l3miage.spring.tp3.exceptions.technical.ExamNotFoundException;
+import fr.uga.l3miage.spring.tp3.mappers.ExamMapper;
 import fr.uga.l3miage.spring.tp3.mappers.SessionMapper;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionEntity;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionProgrammationEntity;
@@ -12,15 +14,20 @@ import fr.uga.l3miage.spring.tp3.models.ExamEntity;
 import fr.uga.l3miage.spring.tp3.request.SessionCreationRequest;
 import fr.uga.l3miage.spring.tp3.request.SessionProgrammationCreationRequest;
 import fr.uga.l3miage.spring.tp3.request.SessionProgrammationStepCreationRequest;
+import fr.uga.l3miage.spring.tp3.responses.ExamResponse;
 import fr.uga.l3miage.spring.tp3.responses.SessionResponse;
 import org.junit.jupiter.api.Test;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.AssertTrue;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +48,8 @@ public class SessionServiceTest {
     private ExamComponent examComponent;
     @SpyBean
     private SessionMapper sessionMapper;
+    @SpyBean
+    private ExamMapper examMapper;
 
     // Test pour vérifier que la méthode createSession ne lance pas d'exception.
     @Test
@@ -84,4 +93,52 @@ public class SessionServiceTest {
         // Appel de la méthode à tester et vérification qu'une exception CreationSessionRestException est lancée
         assertThrows(CreationSessionRestException.class, () -> sessionService.createSession(any(SessionCreationRequest.class)));
     }
+    // Test pour vérifier que la méthode create ne renvoit pas d'exception
+    @Test
+    void changeStateDontThrowException() {
+        // Création d'une session avec une programmation dont la date est antérieure à maintenant
+        EcosSessionEntity ecosSessionEntity = EcosSessionEntity.builder().id(1L).build();
+        ExamEntity examEntity = ExamEntity.builder().build();
+        EcosSessionProgrammationEntity ecosSessionProgrammationEntity = EcosSessionProgrammationEntity.builder().build();
+        EcosSessionProgrammationStepEntity ecosSessionProgrammationStepEntity = EcosSessionProgrammationStepEntity.builder()
+                .dateTime(LocalDateTime.of(2020, 4, 7, 0, 0, 0)).build();
+
+        ecosSessionProgrammationEntity.setEcosSessionProgrammationStepEntities(Set.of(ecosSessionProgrammationStepEntity));
+        ecosSessionEntity.setExamEntities(Set.of(examEntity));
+        ecosSessionEntity.setEcosSessionProgrammationEntity(ecosSessionProgrammationEntity);
+
+        // Définition du comportement attendu du mock sessionComponent.getSessionById()
+        when(sessionComponent.getSessionById(anyLong())).thenReturn(ecosSessionEntity);
+
+        // Exécution de la méthode à tester
+        Set<ExamResponse> examResponsesExpected = Set.of(examMapper.toResponse(examEntity));
+        Set<ExamResponse> examResponsesActual = sessionService.changeState(1L);
+
+        // Vérification de l'égalité entre les réponses attendues et les réponses actuelles
+        assertThat(examResponsesActual).isEqualTo(examResponsesExpected);
+    }
+
+    //Test pour vérifier que la méthode create renvoit une exception SessionChangeStateRestException
+    @Test
+    void changeStatusThrowException() {
+        // Création d'une session avec une programmation dont la date est postérieure à maintenant
+        EcosSessionEntity ecosSessionEntity = EcosSessionEntity.builder().id(1L).build();
+        ExamEntity examEntity = ExamEntity.builder().build();
+        EcosSessionProgrammationEntity ecosSessionProgrammationEntity = EcosSessionProgrammationEntity.builder().build();
+        EcosSessionProgrammationStepEntity ecosSessionProgrammationStepEntity = EcosSessionProgrammationStepEntity.builder()
+                .dateTime(LocalDateTime.of(2025, 4, 7, 0, 0, 0)).build();
+
+        ecosSessionProgrammationEntity.setEcosSessionProgrammationStepEntities(Set.of(ecosSessionProgrammationStepEntity));
+        ecosSessionEntity.setExamEntities(Set.of(examEntity));
+        ecosSessionEntity.setEcosSessionProgrammationEntity(ecosSessionProgrammationEntity);
+
+        // Définition du comportement attendu du mock sessionComponent.getSessionById()
+        when(sessionComponent.getSessionById(anyLong())).thenReturn(ecosSessionEntity);
+
+        // Vérification que la méthode lance bien l'exception attendue
+        assertThrows(SessionChangeStateRestException.class, () -> sessionService.changeState(1L));
+    }
+
+
+
 }

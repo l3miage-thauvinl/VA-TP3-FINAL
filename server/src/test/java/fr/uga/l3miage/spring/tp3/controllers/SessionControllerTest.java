@@ -8,6 +8,7 @@ import fr.uga.l3miage.spring.tp3.models.ExamEntity;
 import fr.uga.l3miage.spring.tp3.request.SessionCreationRequest;
 import fr.uga.l3miage.spring.tp3.request.SessionProgrammationCreationRequest;
 import fr.uga.l3miage.spring.tp3.request.SessionProgrammationStepCreationRequest;
+import fr.uga.l3miage.spring.tp3.responses.ExamResponse;
 import fr.uga.l3miage.spring.tp3.responses.SessionResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class SessionControllerTest {
 
     /*public SessionResponse createSession(SessionCreationRequest request) */
     @Test
-    void createSessionDontThrowException(){
+    void createSessionDontThrowTest(){
         final HttpHeaders headers = new HttpHeaders();
 
         // Création d'objets de requête et d'entités pour le test
@@ -50,6 +51,15 @@ public class SessionControllerTest {
 
         ResponseEntity<SessionResponse> rep = testRestTemplate.exchange("/api/sessions/create", HttpMethod.POST, new HttpEntity<>(request,headers), SessionResponse.class);
         assertThat(rep.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+    @Test
+    void changeSessionTest(){
+        final HttpHeaders headers = new HttpHeaders();
+        final HashMap<String,Long> urlParam = new HashMap<>();
+        urlParam.put("idSession", 1L);
+        Long request = 1L;
+        ResponseEntity<ExamResponse> rep = testRestTemplate.exchange("/api/sessions/{idSession}/changeState", HttpMethod.POST, new HttpEntity<>(request, headers), ExamResponse.class, urlParam);
+        assertThat(rep.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }
 

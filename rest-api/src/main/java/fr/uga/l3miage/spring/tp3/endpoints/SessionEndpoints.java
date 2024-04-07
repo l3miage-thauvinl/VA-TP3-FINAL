@@ -30,7 +30,7 @@ public interface SessionEndpoints {
     @ApiResponse(responseCode = "200", description = "L'état a bien été modifé")
     @ApiResponse(responseCode = "409", description = "L'état n'a pas été modifié", content = @Content(schema = @Schema(implementation = String.class), mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/changeState")
+    @PostMapping("/{idSession}/changeState")
     Set<ExamResponse> changeState(@RequestBody Long idSession);
 
 

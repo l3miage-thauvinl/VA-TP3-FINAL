@@ -2,6 +2,7 @@ package fr.uga.l3miage.spring.tp3.components;
 
 import fr.uga.l3miage.spring.tp3.models.EcosSessionEntity;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionProgrammationEntity;
+import fr.uga.l3miage.spring.tp3.models.ExamEntity;
 import fr.uga.l3miage.spring.tp3.repositories.EcosSessionProgrammationRepository;
 import fr.uga.l3miage.spring.tp3.repositories.EcosSessionProgrammationStepRepository;
 import fr.uga.l3miage.spring.tp3.repositories.EcosSessionRepository;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @AutoConfigureTestDatabase
@@ -55,4 +57,30 @@ public class SessionComponentTest {
         // Vérification que l'entité retournée par la méthode createSession correspond à celle attendue
         assertThat(rep).isEqualTo(ecosSessionEntity);
     }
+
+    // Test pour vérifier que la méthode getSessionById retourne l'entité EcosSessionEntity correcte.
+    @Test
+    void getSessionByIdReturnEntity(){
+        // Création d'une entité de session pour le test
+        EcosSessionEntity ecosSessionEntity = EcosSessionEntity
+                .builder()
+                .id(1L)
+                .build();
+        // Création d'une entité de programmation de session pour l'entité de session
+        EcosSessionProgrammationEntity ecosSessionProgrammationEntity = EcosSessionProgrammationEntity
+                .builder().build();
+        // Configuration de l'entité de session avec l'entité de programmation de session
+        ecosSessionEntity.setEcosSessionProgrammationEntity(ecosSessionProgrammationEntity);
+
+        // Définition du comportement attendu du mock ecosSessionRepository.findById()
+        when(ecosSessionRepository.findById(anyLong())).thenReturn(Optional.of(ecosSessionEntity));
+
+        // Appel de la méthode à tester avec l'identifiant de session spécifié
+        EcosSessionEntity rep = sessionComponent.getSessionById(1L);
+
+        // Vérification que l'entité retournée correspond à celle attendue
+        assertThat(rep).isEqualTo(ecosSessionEntity);
+    }
+
+
 }

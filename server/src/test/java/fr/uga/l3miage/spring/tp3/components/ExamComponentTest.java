@@ -1,6 +1,7 @@
 package fr.uga.l3miage.spring.tp3.components;
 
 import fr.uga.l3miage.spring.tp3.exceptions.technical.ExamNotFoundException;
+import fr.uga.l3miage.spring.tp3.models.EcosSessionEntity;
 import fr.uga.l3miage.spring.tp3.models.ExamEntity;
 import fr.uga.l3miage.spring.tp3.repositories.ExamRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,5 +62,4 @@ public class ExamComponentTest {
         // Vérification que cette méthode ne lance pas d'exception
         assertDoesNotThrow(()->examComponent.getAllById(Set.of(1L)));
     }
-
 }
